@@ -8,6 +8,7 @@ import {DAOGovernor} from "../src/DAOGovernor.sol";
 import {DAOToken} from "../src/DAOToken.sol";
 import {AccessControlled} from "../src/AccessControlled.sol";
 import {Owned} from "../src/Owned.sol";
+import {RollupUpgradeable} from "../src/RollupUpgradeable.sol";
 
 /// @dev See the Solidity Scripting tutorial: https://book.getfoundry.sh/tutorials/solidity-scripting
 contract Deploy is BaseScript {
@@ -26,13 +27,17 @@ contract Deploy is BaseScript {
     /// @dev A contract using traditional Ownable
     Owned owned;
 
+    /// @dev A contract using traditional Ownable
+    RollupUpgradeable rollup;
+
     function run() public broadcast {
         _deploy(broadcaster);
     }
 
     function _deploy(address admin) private {
         (manager) = _deployManager(admin);
-        (token, governor) = _deployGovernance();
-        (accessControlled, owned) = _deployLegacyAccess();
+        (token, governor) = _deployGovernance(address(manager));
+        (accessControlled, owned) = _deployLegacyAccess(address(manager));
+        (rollup) = _deployUpgradeable(address(manager));
     }
 }
