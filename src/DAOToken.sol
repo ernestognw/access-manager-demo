@@ -7,13 +7,17 @@ import {AccessManaged} from "@openzeppelin/contracts/access/manager/AccessManage
 
 contract DAOToken is ERC20Votes, AccessManaged {
     constructor(
-        address manager
+        address manager,
+        address initialHolder,
+        uint256 initialSupply
     )
         ERC20Votes()
         ERC20("DAOToken", "DAO")
         EIP712("DAOToken", "1")
         AccessManaged(manager)
-    {}
+    {
+        _mint(initialHolder, initialSupply);
+    }
 
     function mint(address account, uint256 value) external restricted {
         _mint(account, value);

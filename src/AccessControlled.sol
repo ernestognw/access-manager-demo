@@ -6,14 +6,13 @@ import {AccessControlDefaultAdminRules} from "@openzeppelin/contracts/access/ext
 contract AccessControlled is AccessControlDefaultAdminRules {
     uint256 public value;
 
-    event ValueSet(uint256 newValue);
+    event DidSomething();
 
     constructor(
         address initialAdmin
     ) AccessControlDefaultAdminRules(3 days, initialAdmin) {}
 
-    function setValue(uint256 newValue) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        value = newValue;
-        emit ValueSet(newValue);
+    function doSomething() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        emit DidSomething();
     }
 }

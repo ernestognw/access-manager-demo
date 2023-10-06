@@ -2,14 +2,6 @@
 pragma solidity ^0.8.20;
 
 import {Script} from "forge-std/Script.sol";
-import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {DAOToken} from "../src/DAOToken.sol";
-import {DAOGovernor} from "../src/DAOGovernor.sol";
-import {DAOToken} from "../src/DAOToken.sol";
-import {AccessControlled} from "../src/AccessControlled.sol";
-import {Owned} from "../src/Owned.sol";
-import {RollupUpgradeable} from "../src/RollupUpgradeable.sol";
 
 abstract contract BaseScript is Script {
     /// @dev Included to enable compilation of the script without a $MNEMONIC environment variable.
@@ -49,43 +41,5 @@ abstract contract BaseScript is Script {
         vm.startBroadcast(broadcaster);
         _;
         vm.stopBroadcast();
-    }
-
-    function _deployManager(
-        address admin
-    ) internal virtual returns (AccessManager manager) {
-        return new AccessManager(admin);
-    }
-
-    function _deployGovernance(
-        address manager
-    ) internal virtual returns (DAOToken token, DAOGovernor governor) {
-        token = new DAOToken(manager);
-        governor = new DAOGovernor(token);
-    }
-
-    function _deployLegacyAccess(
-        address manager
-    )
-        internal
-        virtual
-        returns (AccessControlled accessControlled, Owned owned)
-    {
-        accessControlled = new AccessControlled(manager);
-        owned = new Owned(manager);
-    }
-
-    function _deployUpgradeable(
-        address manager
-    ) internal virtual returns (RollupUpgradeable upgradeable) {
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(new RollupUpgradeable()),
-            abi.encodeCall(
-                RollupUpgradeable.initialize.selector,
-                abi.encode(manager)
-            )
-        );
-
-        return RollupUpgradeable(proxy);
     }
 }
