@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import {BaseScript} from "./utils/Base.s.sol";
 import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
 import {DAOToken} from "../src/DAOToken.sol";
 import {DAOGovernor} from "../src/DAOGovernor.sol";
 import {DAOToken} from "../src/DAOToken.sol";
@@ -56,11 +57,11 @@ contract Deploy is BaseScript {
         governor = new DAOGovernor(token);
         accessControlled = new AccessControlled(address(manager));
         owned = new Owned(address(manager));
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(new RollupUpgradeableV1()),
+        address proxy = Upgrades.deployUUPSProxy(
+            "RollupUpgradeable.sol:RollupUpgradeableV1",
             abi.encodeCall(RollupUpgradeableV1.initialize, address(manager))
         );
-        rollup = RollupUpgradeableV1(address(proxy));
+        rollup = RollupUpgradeableV1(proxy);
 
         // Restrict functions
 
