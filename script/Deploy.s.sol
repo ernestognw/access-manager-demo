@@ -45,6 +45,19 @@ contract Deploy is BaseScript {
     uint64 public constant MINTER_GUARDIAN_ROLE = 8;
     uint64 public constant MINTER_ADMIN_ROLE = 9;
 
+    // Execution delays
+    uint32 public constant CALLER_ROLE_EXECUTION_DELAY = 5 hours;
+    uint32 public constant CALLER_GUARDIAN_ROLE_EXECUTION_DELAY = 2 hours;
+    uint32 public constant CALLER_ADMIN_ROLE_EXECUTION_DELAY = 8 hours;
+
+    uint32 public constant UPGRADER_ROLE_EXECUTION_DELAY = 5 days;
+    uint32 public constant UPGRADER_GUARDIAN_ROLE_EXECUTION_DELAY = 0;
+    uint32 public constant UPGRADER_ADMIN_ROLE_EXECUTION_DELAY = 15 days;
+
+    uint32 public constant MINTER_ROLE_EXECUTION_DELAY = 5 hours;
+    uint32 public constant MINTER_GUARDIAN_ROLE_EXECUTION_DELAY = 3 days;
+    uint32 public constant MINTER_ADMIN_ROLE_EXECUTION_DELAY = 2 days;
+
     function run() public broadcast {
         manager = new AccessManager(broadcaster); // Broadcaster is initial admin
 
@@ -88,36 +101,45 @@ contract Deploy is BaseScript {
 
         // Assign roles
         address admin = vm.envAddress("ADMIN");
-        _grantMissingRole(manager.ADMIN_ROLE(), admin);
+        _grantMissingRole(manager.ADMIN_ROLE(), admin, 0);
 
         _setUpRole({
             roleId: MINTER_ROLE,
             account: vm.envAddress("MINTER"),
+            executionDelay: MINTER_ROLE_EXECUTION_DELAY,
             adminId: MINTER_ADMIN_ROLE,
             admin: vm.envOr({name: "MINTER_ADMIN", defaultValue: admin}),
+            adminExecutionDelay: MINTER_ADMIN_ROLE_EXECUTION_DELAY,
             guardianId: MINTER_GUARDIAN_ROLE,
             guardian: vm.envOr({name: "MINTER_GUARDIAN", defaultValue: admin}),
+            guardianExecutionDelay: MINTER_GUARDIAN_ROLE_EXECUTION_DELAY,
             label: "MINTER"
         });
         _setUpRole({
             roleId: CALLER_ROLE,
             account: vm.envAddress("CALLER"),
+            executionDelay: CALLER_ROLE_EXECUTION_DELAY,
             adminId: CALLER_ADMIN_ROLE,
             admin: vm.envOr({name: "CALLER_ADMIN", defaultValue: admin}),
+            adminExecutionDelay: CALLER_ADMIN_ROLE_EXECUTION_DELAY,
             guardianId: CALLER_GUARDIAN_ROLE,
             guardian: vm.envOr({name: "CALLER_AGUARDIAN", defaultValue: admin}),
+            guardianExecutionDelay: CALLER_GUARDIAN_ROLE_EXECUTION_DELAY,
             label: "CALLER"
         });
         _setUpRole({
             roleId: UPGRADER_ROLE,
             account: vm.envAddress("UPGRADER"),
+            executionDelay: UPGRADER_ROLE_EXECUTION_DELAY,
             adminId: UPGRADER_ADMIN_ROLE,
             admin: vm.envOr({name: "UPGRADER_ADMIN", defaultValue: admin}),
+            adminExecutionDelay: UPGRADER_ADMIN_ROLE_EXECUTION_DELAY,
             guardianId: UPGRADER_GUARDIAN_ROLE,
             guardian: vm.envOr({
                 name: "UPGRADER_GUARDIAN",
                 defaultValue: admin
             }),
+            guardianExecutionDelay: UPGRADER_GUARDIAN_ROLE_EXECUTION_DELAY,
             label: "UPGRADER"
         });
 
@@ -126,27 +148,34 @@ contract Deploy is BaseScript {
 
     function _setUpRole(
         uint64 roleId,
+        uint32 executionDelay,
         address account,
         uint64 adminId,
         address admin,
+        uint32 adminExecutionDelay,
         uint64 guardianId,
         address guardian,
+        uint32 guardianExecutionDelay,
         string memory label
     ) private {
-        _grantMissingRole(roleId, account);
+        _grantMissingRole(roleId, account, executionDelay);
         manager.labelRole(roleId, label);
 
         manager.setRoleGuardian(roleId, guardianId);
-        _grantMissingRole(guardianId, guardian);
+        _grantMissingRole(guardianId, guardian, guardianExecutionDelay);
 
         manager.setRoleAdmin(roleId, adminId);
-        _grantMissingRole(adminId, admin);
+        _grantMissingRole(adminId, admin, adminExecutionDelay);
     }
 
-    function _grantMissingRole(uint64 roleId, address account) private {
+    function _grantMissingRole(
+        uint64 roleId,
+        address account,
+        uint32 executionDelay
+    ) private {
         (bool isMember, ) = manager.hasRole(roleId, account);
         if (!isMember) {
-            manager.grantRole(roleId, account, 0);
+            manager.grantRole(roleId, account, executionDelay);
         }
     }
 

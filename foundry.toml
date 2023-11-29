@@ -4,6 +4,7 @@ out = "out"
 libs = ["lib"]
 build_info = true
 extra_output = ["storageLayout"]
+ffi=true
 
 [etherscan]
   arbitrum_one = { key = "${API_KEY_ARBISCAN}" }
